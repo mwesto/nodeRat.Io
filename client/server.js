@@ -1,9 +1,9 @@
 ///////////////////////////////////////////////////////////////////////
 // Software: NodeRat.io CLient  (Reverse connexion)                  //
 // Version:  v1.0.0 beta                                             //
-// Date:     2017-01-01                                              //
+// Date:     2017-02-01                                              //
 // Author:   Maxime Westhoven                                        //
-// Website:  http://www.mwesot.be/                                   //
+// Website:  https://www.mwesot.be/                                   //
 // Licence:  Copyright © 2017-2018, All Rights Reserved.             //
 ///////////////////////////////////////////////////////////////////////
 

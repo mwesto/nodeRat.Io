@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////
-// Software: basicbase_mwesto                                        //
-// Version:  1.0                                                    //
-// Date:     2017-01-17                                              //
+// Software: NodeRat.io (cloud)                                      //
+// Version:  v1.0.0 beta                                             //
+// Date:     2017-02-01                                              //
 // Author:   Maxime Westhoven                                        //
 // Website:  https://www.mwesto.be                                   //
-// Licence:  Copyright © 2017 All Rights Reserved.                   //
+// Licence:  Copyright © 2017-2018, All Rights Reserved.             //
 ///////////////////////////////////////////////////////////////////////
 
 // [ Config Default ]

