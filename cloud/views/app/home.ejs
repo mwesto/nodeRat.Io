@@ -1,0 +1,258 @@
+<html>
+<head>
+  <base href="../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../app/">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>nodeRat.io</title>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+	<!-- Sweet alert theme -->
+	<link rel="stylesheet" href="css/sweetalert.css.min.css">
+	<!-- SideBar -->
+	<link rel="stylesheet" href="css/slidebars.css">
+
+	<style type="text/css">
+
+		@font-face {
+		    font-family: Homenaje;
+		    src: url(fonts/Homenaje-Regular.ttf);
+		}
+
+		html, body, #sb-site {
+			font-family: Homenaje;
+      background: url(img/background.jpg) no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      color:#3498db;
+		}
+
+		.header{
+			text-align: center;
+			margin: 0px 0px 20px 0px;
+		}
+
+		.footer{
+			border:1px solid #3498db;
+			margin: 20px 0px 20px 0px;
+			padding: 5px;
+      background: #141414;
+		}
+
+		.mainMenu{
+			margin: 0px 0px 20px 0px;
+		}
+
+		.menuLabel{
+			font-size: 16px;
+      background: #141414;
+		}
+
+    .logo{
+			width: 300px;
+      margin: 20px 0px -10px 0px;
+		}
+
+		.tagline{
+			color: white;
+		}
+
+		.clientListing{
+			height: 500px;
+			border:1px solid #3498db;
+      background: #141414;
+      margin:0px 0px 20px 0px;
+		}
+
+		.clientListingHeader{
+			overflow: auto;
+			border:1px solid #3498db;
+			font-size:20px;
+			color:white;
+      background: #000;
+		}
+
+		.clientListingRow{
+			font-size:16px;
+			border-bottom: 1px solid #3498db;
+			padding: 8px 0px 8px 0px;
+			color:white;
+		}
+
+		.iconOnline{
+			height: 22px;
+			width: 22px;
+		}
+
+		.textCentred{
+			text-align: center;
+		}
+
+		.consoleLogs{
+			overflow: auto;
+			height: 250px;
+			border:1px solid #3498db;
+			padding: 10px;
+      background: #000;
+      font-size: 15px;
+		}
+
+    .remoteShell{
+      overflow: auto;
+			height: 400px;
+			border:1px solid #3498db;
+			padding: 5px;
+      background: #000;
+    }
+
+    .defaultContainer{
+			border:1px solid #3498db;
+			padding: 5px;
+      background: #000;
+      padding:15px;
+    }
+
+		.logs-success{
+			color:#2ecc71;
+		}
+
+		.logs-info{
+			color:#3498db;
+		}
+
+		.logs-warning{
+			color:#e67e22;
+		}
+
+		.logs-danger{
+			color:#e74c3c;
+		}
+
+    .glyphLeft{
+      float:left;
+      margin-top:2px;
+    }
+
+    .disabled{
+      cursor: not-allowed;
+    }
+
+    h4{
+      color:white;
+    }
+
+	</style>
+
+</head>
+<body>
+
+	<div class="sb-slidebar sb-left sb-style-overlay sb-width-thin">
+	  <!-- Your left Slidebar content. -->
+	</div>
+
+	<div class="sb-slidebar sb-right sb-style-overlay sb-width-thin">
+	  <!-- Your right Slidebar content. -->
+	</div>
+
+
+
+	<div id="sb-site">
+
+    <div class="container">
+
+      <div class="row">
+        <div class="col-sm-12 header">
+          <img src="img/logo.png" alt="" class="logo">
+					<h3 class="tagline">Full nodejs Remote Administration Tools with socket.io</h3>
+				</div>
+      </div>
+
+      <% include includes/menu %>
+
+      <% if(section == "client_listing"){ %>   <% include includes/pages/client_listing %>   <% } %>
+      <% if(section == "client_dashboard"){ %> <% include includes/pages/client_dashboard %> <% } %>
+      <% if(section == "client_remote_shell"){ %> <% include includes/pages/client_remote_shell %> <% } %>
+      <% if(section == "config"){ %>           <% include includes/pages/config %>           <% } %>
+
+      <% include includes/footer %>
+
+		</div>
+
+	</div>
+
+	<script src="js/jquery-1.11.3.min.js"></script>
+	<script src="js/jquery-migrate-1.2.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/sweetalert.min.js"></script>
+	<script src="js/slidebars.js"></script>
+	<script src="js/jquery.nicescroll.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+	<script>
+
+	    $(document).ready(function() {
+
+        var socket = io.connect('http://<%= config_ip_server %>:<%= config_port_server %>/webAdmin');  // Connexion au socket
+        var admin  = { "admin_mail": "<%= admin.admin_mail %>", "admin_password": "<%= admin.admin_password %>" }
+
+  			socket.emit('initWebAdmin', admin);
+
+        socket.on('adminInittSuccess', function (data) {
+
+            socket.emit('getNodeClientOnline');
+
+            socket.on('nodeClientOnline', function (data) {
+             $("#client_"+data).attr("src","img/icons/online.png");
+            });
+
+            socket.on('nodeClientOffline', function (data) {
+             $("#client_"+data).attr("src","img/icons/offline.png");
+            });
+
+            // Send cmd to reverse shell
+            $(document).keypress(function(e) {
+                if(e.which == 13) {
+                  var clientId = $(".cmdForReverseShell").data("client-id");
+                  var adminId  = $(".cmdForReverseShell").data("admin-id");
+                  var cmd      = $(".cmdForReverseShell").val();
+                  socket.emit("cmdForReverseShell", clientId, adminId, cmd);
+                  $(".cmdForReverseShell").val("");
+                  $(".remoteShell").append("<p class='logs-succes'>Cmd: "+cmd+"</p>");
+                }
+            });
+            // Callback reverse shell
+            socket.on('reverseShellCallback', function (clientId, type, data) {
+              if(type == "success") var logType = "logs-info";
+              if(type == "error")   var logType = "logs-danger";
+              $(".remoteShell").append("<p class='"+logType+"' style='background:#000;'>"+data+"</p>");
+              $('.remoteShell').scrollTop($('.remoteShell')[0].scrollHeight);
+            });
+
+        });
+
+        /* ---------- FRONTEND ---------- */
+  			$(".clientListing").niceScroll({cursorcolor:"#3498db"});
+        $(".consoleLogs").niceScroll({cursorcolor:"#3498db"});
+        $(".remoteShell").niceScroll({cursorcolor:"#3498db"});
+
+  			$.slidebars({
+  				siteClose: true, // true or false
+  				disableOver: false, // integer or false
+  				hideControlClasses: false, // true or false
+  				scrollLock: true // true or false
+  			});
+
+	    });
+
+	</script>
+
+</body>
+</html>
