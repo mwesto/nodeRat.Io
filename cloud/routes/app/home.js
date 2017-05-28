@@ -1,7 +1,7 @@
 // [ Clients listing ]
 exports.home = function(req, res){
 
-	console.log("Admin GET: Home - Client listing".cyan);
+	console.log("Admin GET: Home - Client listing: ".cyan + req.mySession.admin_info[0].admin_pseudo);
 
 	sql_client_list = "SELECT * FROM t_clients WHERE client_active = 1;";
 	db.query(sql_client_list, function(err, rows, fields) {

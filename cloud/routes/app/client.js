@@ -1,7 +1,7 @@
 // [ Client Dashboard  ]
 exports.client_dashboard = function(req, res){
 
-	console.log("Admin GET: Client Dashboard (".cyan+req.params['id']+")".cyan)
+	console.log("Admin GET: Client Dashboard (Client:".cyan+req.params['id']+") : ".cyan + req.mySession.admin_info[0].admin_pseudo)
 
 	sql_login_verif = "SELECT * FROM t_clients WHERE client_id = " + db.escape(req.params['id']) + " AND client_active = 1;";
 	db.query(sql_login_verif, function(err, rows, fields) {
@@ -42,7 +42,7 @@ exports.client_dashboard_delete = function(req, res){
 // [ Dashboard  ]
 exports.client_remote_shell = function(req, res){
 
-	console.log("Admin GET: Client Remote Shell (".cyan+req.params['id']+")".cyan)
+	console.log("Admin GET: Client Remote Shell (Client:".cyan+req.params['id']+") : ".cyan + req.mySession.admin_info[0].admin_pseudo)
 
 	sql_login_verif = "SELECT * FROM t_clients WHERE client_id = " + db.escape(req.params['id']) + " AND client_active = 1;";
 	db.query(sql_login_verif, function(err, rows, fields) {

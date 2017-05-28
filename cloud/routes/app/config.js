@@ -1,7 +1,7 @@
 // [ Config ]
 exports.home = function(req, res){
 
-		console.log("Admin GET: Config".cyan)
+		console.log("Admin GET: Config".cyan + req.mySession.admin_info[0].admin_pseudo)
 		res.render('app/home', {
 		  title    : 'Config',
 	    section : 'config',

