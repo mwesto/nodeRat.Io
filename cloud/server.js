@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////
 // Software: NodeRat.io (cloud)                                      //
-// Version:  v1.0.0 beta                                             //
+// Version:  v1.0.1                                                  //
 // Date:     2017-02-01                                              //
 // Author:   Maxime Westhoven                                        //
 // Website:  https://www.mwesto.be                                   //
