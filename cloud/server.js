@@ -61,7 +61,7 @@ console.log('[SYSTEM]'.green + ' Cloud started : http://' + config_ip_server+":"
 // =================================================== \\
 // ================== Shell on Cloud ================= \\
 // =================================================== \\
-if (os.platform() == "linux") var init = "bash";
+if (os.platform() == "linux" || os.platform() == "darwin") var init = "bash";
 if (os.platform() == "win32") var init = "cmd";
 var spawn = spawn(init);
 spawn.stdout.setEncoding("utf8");

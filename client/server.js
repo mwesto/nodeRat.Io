@@ -29,7 +29,7 @@ clientData.network  = os.networkInterfaces();
 clientData.version  = "1.0.0 (beta)";
 
 // Init & Config shell
-if (clientData.platform == "linux") var init = "bash";
+if (clientData.platform == "linux" || clientData.platform == "darwin") var init = "bash";
 if (clientData.platform == "win32") var init = "cmd";
 var spawn = spawn(init);
 spawn.stdout.setEncoding("utf8");
